@@ -1,0 +1,423 @@
+/* style.css — Terminal dark theme, matches your existing CustomTkinter palette */
+
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Ubuntu:wght@400;500&display=swap');
+
+/* ── CSS Variables (mirrors theme.py) ─────────────────────────────────────── */
+:root {
+  --bg:        #1a1a1a;
+  --glass:     #222222;
+  --glass2:    #2b2b2b;
+  --glass3:    #323232;
+  --border:    #3a3a3a;
+  --border-hv: #505050;
+  --text:      #ededeb;
+  --subtext:   #5a5a58;
+  --error:     #c0392b;
+  --success:   #27ae60;
+  --warn:      #d4820a;
+  --mono:      'Ubuntu Mono', monospace;
+  --sans:      'Ubuntu', sans-serif;
+
+  /* Accent — overridden per session via JS from theme.py palette */
+  --accent:     #00c896;
+  --accent-hv:  #00e0a8;
+  --accent-dim: #004d3a;
+  --glow:       #00a87e;
+}
+
+/* ── Reset ─────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-hv); border-radius: 2px; }
+
+/* ── Card ──────────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.card-stripe {
+  height: 2px;
+  background: var(--accent);
+}
+
+/* ── GlowEntry (mirrors the CustomTkinter GlowEntry widget) ────────────────── */
+.field-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  white-space: nowrap;
+  min-width: 80px;
+}
+
+.entry-box {
+  display: flex;
+  align-items: center;
+  background: var(--glass2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  transition: border-color 0.15s;
+}
+
+.entry-box:focus-within {
+  border-color: var(--glow);
+}
+
+.entry-arrow {
+  color: var(--accent-dim);
+  font-size: 16px;
+  padding: 0 6px 0 10px;
+  user-select: none;
+}
+
+.entry-box input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 10px 4px;
+  min-width: 0;
+}
+
+.entry-box input::placeholder { color: var(--subtext); }
+
+.eye-btn {
+  background: transparent;
+  border: none;
+  color: var(--subtext);
+  font-size: 11px;
+  padding: 0 8px;
+  cursor: pointer;
+  font-family: var(--mono);
+  transition: color 0.15s;
+}
+.eye-btn:hover { color: var(--text); }
+
+/* ── PNG icon sizing classes ────────────────────────────────────────────────── */
+.icon-img {
+  display: inline-block;
+  object-fit: contain;
+  filter: brightness(0) invert(1);   /* makes PNGs white to match theme */
+  opacity: 0.75;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.icon-lg  { width: 20px; height: 20px; }   /* topbar, primary buttons */
+.icon-md  { width: 17px; height: 17px; }   /* input fields, eye, key, search */
+.icon-sm  { width: 13px; height: 13px; }   /* copy/user inline buttons */
+
+.entry-icon { padding: 0 6px 0 10px; opacity: 0.5; }
+.eye-icon-img { opacity: 0.6; transition: opacity 0.15s; }
+.eye-btn:hover .eye-icon-img { opacity: 1; }
+
+
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.field-row .entry-box { flex: 1; }
+
+
+.btn-primary {
+  width: 100%;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 7px;
+  padding: 13px;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.08s;
+}
+.btn-primary:hover  { background: var(--accent-hv); }
+.btn-primary:active { transform: scale(0.98); }
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border-hv);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: 6px;
+  transition: background 0.15s, border-color 0.15s;
+  width: 100%;
+}
+.btn-ghost:hover { background: var(--glass2); border-color: var(--subtext); }
+
+.btn-icon {
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--sans);
+  font-weight: 700;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.btn-icon:hover { background: var(--accent-hv); }
+
+.btn-copy {
+  background: var(--glass2);
+  color: var(--accent);
+  border: 1px solid var(--accent-dim);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-copy:hover { background: var(--glass3); }
+
+.btn-delete {
+  background: transparent;
+  border: none;
+  color: var(--subtext);
+  font-family: var(--mono);
+  font-size: 10px;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-delete:hover { background: #2a1010; color: #e05c5c; }
+
+/* ── Status label ──────────────────────────────────────────────────────────── */
+.status {
+  font-size: 10px;
+  color: var(--error);
+  min-height: 16px;
+  margin-top: 10px;
+}
+.status.ok { color: var(--success); }
+
+/* ── Toast (top-center) ────────────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-12px);
+  background: var(--glass2);
+  border: 1px solid var(--glow);
+  border-radius: 6px;
+  padding: 9px 20px;
+  font-size: 12px;
+  color: var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  white-space: nowrap;
+  z-index: 999;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+/* alias */
+.toast-top { top: 16px; bottom: auto; }
+
+/* ── Strength bar ─────────────────────────────────────────────────────────── */
+.strength-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+.strength-bar-track {
+  flex: 1;
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.strength-bar-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 2px;
+  transition: width 0.25s, background 0.25s;
+}
+.strength-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--subtext);
+  width: 52px;
+  text-align: right;
+  transition: color 0.25s;
+}
+
+/* ── Modal overlay ─────────────────────────────────────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.overlay.show { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: var(--glass);
+  border: 1px solid var(--accent-dim);
+  border-radius: 10px;
+  width: 360px;
+  overflow: hidden;
+  transform: scale(0.95);
+  transition: transform 0.2s;
+}
+.overlay.show .modal { transform: scale(1); }
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-title {
+  flex: 1;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text);
+}
+.modal-body { padding: 20px 22px; }
+
+/* ── Vault row ─────────────────────────────────────────────────────────────── */
+.vault-row {
+  display: flex;
+  align-items: center;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  transition: border-color 0.15s;
+}
+.vault-row:hover { border-color: var(--accent-dim); }
+
+.site-name {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pw-dots {
+  color: var(--subtext);
+  font-size: 11px;
+  padding: 0 10px;
+}
+
+.row-actions { display: flex; gap: 4px; align-items: center; }
+
+/* ── Topbar ────────────────────────────────────────────────────────────────── */
+.topbar {
+  display: flex;
+  align-items: center;
+  background: var(--glass);
+  height: 52px;
+  border-bottom: 1px solid var(--border);
+  padding: 0 12px;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.topbar-stripe {
+  width: 3px;
+  height: 100%;
+  background: var(--accent);
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+.topbar-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+.topbar-count {
+  font-size: 9px;
+  color: var(--subtext);
+  flex: 1;
+}
+
+/* ── Search ────────────────────────────────────────────────────────────────── */
+.search-wrap { padding: 14px 16px 8px; flex-shrink: 0; }
+.search-box {
+  display: flex;
+  align-items: center;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  transition: border-color 0.15s;
+}
+.search-box:focus-within { border-color: var(--glow); }
+.search-icon { color: var(--subtext); font-size: 14px; padding: 0 6px 0 10px; }
+.search-box input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 8px 6px;
+}
+.search-box input::placeholder { color: var(--subtext); }
+
+/* ── Empty state ───────────────────────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  color: var(--subtext);
+  font-size: 12px;
+  line-height: 1.8;
+  padding: 60px 20px;
+}
+
+/* ── Hex icon (SVG inline) ─────────────────────────────────────────────────── */
+.hex-icon { width: 28px; height: 28px; flex-shrink: 0; }
+.hex-icon.large { width: 52px; height: 52px; }
