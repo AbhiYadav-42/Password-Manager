@@ -1,0 +1,26 @@
+__pycache__/
+*.pyc
+
+# Temporary VS Code / runner files
+tempCodeRunnerFile.py
+
+# Text files (passwords, scores, temp data)
+*.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+Password_Manager1/master_password.json
+Password_Manager1/password.json
+Password_Manager1/password.json
+
+# venv
+.venv/
+
+# vscode
+.vscode/
+
+# flappy bird -img and docu-img
+img/
+docu_img
+
