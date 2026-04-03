@@ -95,19 +95,22 @@ class Api:
                     if isinstance(value, dict):
                         enc      = value.get("password", "")
                         username = value.get("username", "")
+                        url      = value.get("url", "")
                     else:
                         enc      = value
                         username = ""
+                        url      = ""
                     plain = stage_3.decryption(enc, _session_key)
                 except Exception:
                     plain    = "⚠ decrypt error"
                     username = ""
-                entries.append({"site": site, "password": plain, "username": username})
+                    url      = ""
+                entries.append({"site": site, "password": plain, "username": username, "url": url})
             return _ok(entries)
         except Exception as e:
             return _err(str(e))
 
-    def add_password(self, site: str, password: str, username: str = ""):
+    def add_password(self, site: str, password: str, username: str = "", url:str = ""):
         if _session_key is None:
             return _err("Not authenticated")
         if not site.strip():
@@ -121,6 +124,8 @@ class Api:
             entry = {"password": enc}
             if username.strip():
                 entry["username"] = username.strip()
+            if url.strip():
+                entry["url"] =  url.strip()
             Stage_1.pass_dic[site.strip()] = entry
             with open(Stage_1.pass_file, "w") as fp:
                 json.dump(Stage_1.pass_dic, fp, indent=4)
@@ -169,6 +174,10 @@ class Api:
             entry = {"password": enc}
             if username.strip():
                 entry["username"] = username.strip()
+            # Preserve existing URL if present
+            old_entry = Stage_1.pass_dic.get(site, {})
+            if isinstance(old_entry, dict) and old_entry.get("url"):
+                entry["url"] = old_entry["url"]
             Stage_1.pass_dic[site] = entry
             with open(Stage_1.pass_file, "w") as fp:
                 json.dump(Stage_1.pass_dic, fp, indent=4)
@@ -179,3 +188,41 @@ class Api:
     def validate_password(self, password: str):
         is_valid, feedback = Stage_1.validation_pass(password)
         return _ok({"valid": is_valid, "feedback": feedback})
+
+
+    def auto_login(self, site: str):
+        if _session_key is None:
+            return _err("Not authenticated")
+
+        entry = Stage_1.pass_dic.get(site)
+        if not entry:   
+            return _err("Entry not found")
+
+        # Support both old string format and new dict format
+        if isinstance(entry, dict):
+            enc_pw   = entry.get("password", "")
+            username = entry.get("username", "")
+            url      = entry.get("url", "")
+        else:
+            return _err("No URL stored — re-add this entry with a URL")
+
+        print(f"[AUTO_LOGIN] Site: {site}, URL: '{url}', Username: {username}")
+        
+        if not url:
+            return _err("No URL stored for this site — edit the entry and add a URL")
+
+        try:
+            password = stage_3.decryption(enc_pw, _session_key)
+        except Exception as e:
+            return _err(f"Decryption failed: {e}")
+
+        # Run in background thread so UI doesn't freeze
+        import threading
+        import auto_login as auto_login_module
+        threading.Thread(
+            target=auto_login_module.auto_login_brave,
+            args=(url, username, password),
+            daemon=True
+        ).start()
+
+        return _ok(f"Launching browser for {site}...")

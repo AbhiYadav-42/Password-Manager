@@ -9,17 +9,82 @@
     html, body { background: #1a1a1a !important; overflow: hidden; }
     body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
 
-    .container { width: 88%; max-width: 380px; }
+    .container {
+      width: 88%;
+      max-width: 380px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-    .brand { display: flex; flex-direction: column; align-items: center; margin-bottom: 24px; }
-    .brand-title { font-size: 22px; font-weight: 700; letter-spacing: 0.18em; margin-top: 12px; color: var(--text); }
-    .brand-sub { font-size: 12px; color: var(--subtext); margin-top: 4px; }
+    /* ── Brand block ── */
+    .brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
 
+    /* Glowing ring wrapper */
+    .brand-logo-wrap {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin-bottom: 14px;
+      cursor: default;
+
+      /* ring + inner glow — color set by JS via CSS var */
+      background: radial-gradient(circle, var(--logo-glow-inner) 0%, var(--logo-glow-outer) 55%, transparent 75%);
+      box-shadow:
+        0 0 18px var(--logo-shadow-1),
+        0 0 40px var(--logo-shadow-2),
+        inset 0 0 20px var(--logo-shadow-3);
+
+      transition: box-shadow 0.3s ease;
+    }
+
+    /* Heartbeat / ocean-wave pulse on hover */
+    .brand-logo-wrap:hover {
+      animation: heartbeat 1.4s ease-in-out infinite;
+    }
+
+    @keyframes heartbeat {
+      0%   { box-shadow: 0 0 18px var(--logo-shadow-1), 0 0 40px var(--logo-shadow-2); }
+      14%  { box-shadow: 0 0 32px var(--logo-shadow-1), 0 0 70px var(--logo-shadow-2), 0 0 100px var(--logo-shadow-3); }
+      28%  { box-shadow: 0 0 18px var(--logo-shadow-1), 0 0 40px var(--logo-shadow-2); }
+      42%  { box-shadow: 0 0 28px var(--logo-shadow-1), 0 0 60px var(--logo-shadow-2), 0 0 90px var(--logo-shadow-3); }
+      70%  { box-shadow: 0 0 18px var(--logo-shadow-1), 0 0 40px var(--logo-shadow-2); }
+      100% { box-shadow: 0 0 18px var(--logo-shadow-1), 0 0 40px var(--logo-shadow-2); }
+    }
+
+    .brand-logo {
+      width: 128px;
+      height: 128px;
+      object-fit: contain;
+      mix-blend-mode: screen;
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .brand-sub { font-size: 12px; color: var(--subtext); }
+
+    /* Card full width */
+    .card { width: 100%; }
     .inner { padding: 24px 28px; }
     .field { margin-bottom: 16px; }
     .field-label-top { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 7px; display: block; }
     .confirm-wrap { margin-top: 16px; }
-
     .entry-box input { font-size: 14px; padding: 12px 4px; }
     .btn-primary { font-size: 14px; padding: 14px; margin-top: 12px; }
     .btn-ghost { font-size: 12px; padding: 10px 14px; margin-top: 6px; }
@@ -30,11 +95,10 @@
 
 <div class="container">
   <div class="brand">
-    <svg class="hex-icon large" viewBox="0 0 52 52" fill="none">
-      <polygon id="hex-poly" stroke-width="2" fill="none"/>
-      <circle cx="26" cy="26" r="5" id="hex-dot"/>
-    </svg>
-    <div class="brand-title">VAULT</div>
+    <div class="brand-logo-wrap" id="logo-wrap">
+      <img src="../fonts/umbrella.png" class="brand-logo">
+    </div>
+    <div class="brand-title">Umbrella VAULT</div>
     <div class="brand-sub" id="subtitle">// authenticate to continue</div>
   </div>
 
@@ -99,10 +163,12 @@
   root.style.setProperty('--accent-dim', dim);
   root.style.setProperty('--glow', glow);
 
-  const pts = Array.from({length:6},(_,i)=>{const a=Math.PI/180*(60*i-30);return`${26+22*Math.cos(a)},${26+22*Math.sin(a)}`;}).join(' ');
-  document.getElementById('hex-poly').setAttribute('points', pts);
-  document.getElementById('hex-poly').setAttribute('stroke', accent);
-  document.getElementById('hex-dot').setAttribute('fill', accent);
+  // Set logo glow colors from accent
+  root.style.setProperty('--logo-glow-inner',  accent + '33');  // 20% opacity
+  root.style.setProperty('--logo-glow-outer',  accent + '11');  // 7% opacity
+  root.style.setProperty('--logo-shadow-1',    accent + '88');  // 53% opacity
+  root.style.setProperty('--logo-shadow-2',    accent + '44');  // 27% opacity
+  root.style.setProperty('--logo-shadow-3',    accent + '22');  // 13% opacity
 
   let mode = 'login';
 
