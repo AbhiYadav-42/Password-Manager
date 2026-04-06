@@ -12,6 +12,9 @@ import stage_2
 import stage_3
 import Stage_1                          # import module, not names — fixes memory bug
 
+import pyperclip
+import threading
+import time
 MASTER_FILE = stage_2.MASTER_FILE
 
 _session_key: bytes | None = None
@@ -226,3 +229,33 @@ class Api:
         ).start()
 
         return _ok(f"Launching browser for {site}...")
+
+    def copy_password(self,site:str):
+        if _session_key is None:
+            return _err("Not Authenticated")
+
+        entry = Stage_1.pass_dic.get(site)
+        if not entry:
+            return _err("Entry not found")
+
+        if isinstance(entry, dict):
+            enc = entry.get("password","")
+        else:
+            enc= entry
+
+        try: 
+            password = stage_3.decryption(enc, _session_key)
+        except Exception as e:
+            return _err(f"Decryption Failed:{e} ")
+
+        # copy to clipboard
+        pyperclip.copy(password)
+
+        def _destruct():
+            time.sleep(10)
+            if pyperclip.paste() == password:
+                pyperclip.copy("")
+
+        threading.Thread(target=_destruct, daemon=True).start()
+
+        return _ok("Copied!")

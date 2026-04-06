@@ -6,6 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.core.os_manager import ChromeType
+import undetected_chromedriver as uc
 import time
 import subprocess
 
@@ -20,10 +21,14 @@ def auto_login_brave(url, username, password):
   options.add_argument("--disable-background-networking")
   options.add_argument("--disable-sync")
 
+  brave_version = None
+  driver_path = None
+  
   try:
     # Get Brave browser version
     result = subprocess.run(['/usr/bin/brave-browser', '--version'], 
-                          capture_output=True, text=True, timeout=5)
+    capture_output=True, text=True, timeout=5)
+
     if result.returncode == 0:
 # Extract version string, e.g., "Brave Browser 145.0.7632.109" -> "145"
       version_parts = result.stdout.strip().split()
@@ -48,8 +53,15 @@ def auto_login_brave(url, username, password):
     print("Falling back to latest ChromeDriver")
     driver_path = ChromeDriverManager(chrome_type=ChromeType.BRAVE).install()
   
-  service = Service(driver_path)
-  driver = webdriver.Chrome(service=service, options=options)
+  # Use undetected-chromedriver wrapper to bypass bot detection
+  try:
+    if brave_version and driver_path:
+      driver = uc.Chrome(driver_executable_path=driver_path, options=options, version_main=int(brave_version))
+    else:
+      driver = uc.Chrome(options=options)
+  except:
+    print("Warning: undetected-chromedriver failed, falling back to standard Selenium")
+    driver = webdriver.Chrome(options=options)
 
   try:
     # Validate and normalize URL
@@ -59,23 +71,70 @@ def auto_login_brave(url, username, password):
     print(f"Navigating to: {url}")
     driver.get(url)
     
+    # Wait for JavaScript to be ready before looking for elements
+    print("Waiting for page JavaScript to load...")
+    WebDriverWait(driver, 10).until(
+        lambda d: d.execute_script("return document.readyState") == "complete"
+    )
+    print("✓ Page loaded successfully")
+    
     wait = WebDriverWait(driver, 15)
 
-    # Find and fill email field
-    user_field = wait.until(EC.presence_of_element_located((
-        By.CSS_SELECTOR, "input[name='email']"
-    )))
+    # Find and fill email/username field - try multiple selectors with shorter timeouts
+    user_field = None
+    email_selectors = [
+        (By.CSS_SELECTOR, "input#identifierId"),  # Google - try this FIRST
+        (By.CSS_SELECTOR, "input[name='email']"),
+        (By.CSS_SELECTOR, "input[type='email']"),
+        (By.CSS_SELECTOR, "input[name='username']"),
+        (By.CSS_SELECTOR, "input[aria-label*='email']"),
+        (By.CSS_SELECTOR, "input[placeholder*='email']"),
+        (By.CSS_SELECTOR, "input[placeholder*='username']"),
+    ]
+    
+    for selector in email_selectors:
+      try:
+        # Use shorter timeout (3 sec) and clickable wait (faster than presence)
+        user_field = WebDriverWait(driver, 3).until(EC.element_to_be_clickable(selector))
+        print(f"✓ Found email/username field with selector: {selector}")
+        break
+      except:
+        continue
+    
+    if user_field is None:
+      raise Exception("Could not find email or username field")
+    
     user_field.clear()
     user_field.send_keys(username)
+    print(f"✓ Entered username: {username}")
 
     # Detect single vs multi-page login
     try:
-      # Try to find password field immediately (single-page)
-      pass_field = WebDriverWait(driver, 2).until(EC.presence_of_element_located((
-          By.CSS_SELECTOR, "input[name='pass']"
-      )))
-      print("Detected: Single-page login")
+      # Try to find password field immediately (single-page) with shorter timeouts
+      pass_field = None
+      password_selectors = [
+          (By.CSS_SELECTOR, "input#password"),  # Google password field
+          (By.CSS_SELECTOR, "input#Passwd"),  # Older Google
+          (By.CSS_SELECTOR, "input[name='password']"),
+          (By.CSS_SELECTOR, "input[type='password']"),
+          (By.CSS_SELECTOR, "input[name='pass']"),
+      ]
+      
+      for selector in password_selectors:
+        try:
+          # Use shorter timeout (2 sec) and clickable wait
+          pass_field = WebDriverWait(driver, 2).until(EC.element_to_be_clickable(selector))
+          print(f"✓ Found password field with selector: {selector}")
+          print("Detected: Single-page login")
+          break
+        except:
+          continue
+      
+      if pass_field is None:
+        raise Exception()
+      
       pass_field.send_keys(password)
+      print(f"✓ Entered password")
 
     except:
       # Multi-page login: password appears after clicking next
@@ -85,11 +144,35 @@ def auto_login_brave(url, username, password):
       next_btn.click()
       
       # Wait for password field to appear on next page
-      pass_field = wait.until(EC.presence_of_element_located((
-          By.CSS_SELECTOR, "input[name='pass']"
-      )))
+      print("Waiting for password page to load...")
+      WebDriverWait(driver, 10).until(
+          lambda d: d.execute_script("return document.readyState") == "complete"
+      )
+      
+      # Wait for password field to appear on next page - try multiple selectors
+      pass_field = None
+      password_selectors = [
+          (By.CSS_SELECTOR, "input#password"),
+          (By.CSS_SELECTOR, "input#Passwd"),
+          (By.CSS_SELECTOR, "input[name='password']"),
+          (By.CSS_SELECTOR, "input[type='password']"),
+          (By.CSS_SELECTOR, "input[name='pass']"),
+      ]
+      
+      for selector in password_selectors:
+        try:
+          pass_field = WebDriverWait(driver, 3).until(EC.element_to_be_clickable(selector))
+          print(f"✓ Found password field with selector: {selector}")
+          break
+        except:
+          continue
+      
+      if pass_field is None:
+        raise Exception("Could not find password field on next page")
+      
       print("Found password field on next page")
       pass_field.send_keys(password)
+      print(f"✓ Entered password")
 
     # Find and click login button
     login_button = driver.find_element(By.CSS_SELECTOR, "input[type='submit']")

@@ -405,9 +405,14 @@
     copyPw.className = 'btn-copy-pw';
     copyPw.innerHTML = '<img src="../fonts/copy.png" class="icon-img icon-sm" style="vertical-align:middle;"> PASS';
     copyPw.title = 'Copy password';
-    copyPw.onclick = () => {
-      navigator.clipboard.writeText(entry.password).then(() => showToast('  🔒  password copied  '));
-    };
+    copyPw.onclick = async () => {
+        const res = await pywebview.api.copy_password(entry.site);
+        if (res.success) {
+          showToast('  🔒  copied — clears in 10s  ');
+        } else {
+        showToast('  ⚠  ' + res.error);
+        }
+      };
 
     // AUTO login
     const autoBtn = document.createElement('button');
